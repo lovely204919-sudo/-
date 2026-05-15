@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+<title>🐸 개구리 노래방</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pond-w: 270px;
+    --pond-h: 200px;
+  }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0c4a6e 0%, #064e3b 55%, #14532d 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: 'Jua', 'Noto Sans KR', sans-serif;
+    overflow-x: hidden;
+    padding: 18px 10px 32px;
+    position: relative;
+  }
+
+  /* ── Stars ── */
+  .star {
+    position: fixed;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: white;
+    pointer-events: none;
+    animation: starF var(--dur) ease-in-out infinite var(--delay);
+  }
+  @keyframes starF {
+    0%, 100% { opacity: .22; transform: scale(1); }
+    50%       { opacity: .8;  transform: scale(1.4); }
+  }
+
+  /* ── Title ── */
+  #title {
+    text-align: center;
+    margin-bottom: 12px;
+    z-index: 10;
+  }
+  #title h1 {
+    font-size: clamp(20px, 6vw, 28px);
+    color: #bbf7d0;
+    text-shadow: 0 0 18px rgba(74,222,128,.65);
+    letter-spacing: 2px;
+  }
+  #title p {
+    font-size: clamp(10px, 3vw, 12px);
+    color: #86efac;
+    opacity: .75;
+    margin-top: 4px;
+  }
+
+  /* ── Pond ── */
+  #pond-wrap {
+    position: relative;
+    width: var(--pond-w);
+    height: var(--pond-h);
+    border-radius: 50%;
+    background: radial-gradient(ellipse at 38% 38%, #0ea5e9 0%, #0369a1 45%, #075985 75%, #0c4a6e 100%);
+    box-shadow: 0 0 50px rgba(14,165,233,.4), inset 0 0 36px rgba(0,0,0,.3);
+    border: 2px solid rgba(148,210,244,.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    overflow: visible;
+    flex-shrink: 0;
+  }
+
+  /* lily pads */
+  .lily {
+    position: absolute;
+    border-radius: 50%;
+    animation: lilyF var(--spd) ease-in-out infinite var(--dir, normal);
+  }
+  .lily-a { bottom:20px; left:14px; width:48px; height:24px; background:#15803d; opacity:.85; clip-path:polygon(50% 0%,100% 100%,0% 100%); --spd:4s; }
+  .lily-b { bottom:16px; right:16px; width:40px; height:20px; background:#166534; opacity:.8;  clip-path:polygon(50% 0%,100% 100%,0% 100%); --spd:3.5s; --dir:reverse; }
+  .lily-c { bottom:10px; left:42px;  width:32px; height:16px; background:#4ade80; opacity:.55; --spd:5s; }
+  @keyframes lilyF {
+    0%, 100% { transform: rotate(-3deg); }
+    50%       { transform: rotate(3deg); }
+  }
+
+  /* ripple */
+  .ripple {
+    position: absolute;
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    border: 2px solid rgba(148,210,244,.65);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(.3);
+    opacity: .7;
+    pointer-events: none;
+    animation: rippleA 1.3s ease-out forwards;
+  }
+  @keyframes rippleA {
+    to { transform: translate(-50%,-50%) scale(4); opacity: 0; }
+  }
+
+  /* bubble */
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(186,230,253,.55);
+    border: 1px solid rgba(255,255,255,.45);
+    bottom: 33%;
+    pointer-events: none;
+    animation: bubUp 2.2s ease-out forwards;
+  }
+  @keyframes bubUp {
+    to { transform: translateY(-90px); opacity: 0; }
+  }
+
+  /* frog container */
+  #frog-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    animation: frogIdle 2.2s ease-in-out infinite;
+  }
+  #frog-wrap.singing { animation: frogSing .22s ease-in-out infinite; }
+  #lily-under {
+    position: absolute;
+    bottom: -5px;
+    width: 115px; height: 32px;
+    background: radial-gradient(ellipse, #22c55e 0%, #15803d 100%);
+    border-radius: 50%;
+    box-shadow: 0 3px 12px rgba(0,0,0,.35);
+    z-index: -1;
+  }
+  @keyframes frogIdle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  @keyframes frogSing { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+
+  /* SVG notes float */
+  @keyframes fn1 { 0%,100%{transform:translateY(0) rotate(0)}   50%{transform:translateY(-10px) rotate(14deg)} }
+  @keyframes fn2 { 0%,100%{transform:translateY(0) rotate(0)}   50%{transform:translateY(-8px)  rotate(-10deg)} }
+  @keyframes fn3 { 0%,100%{transform:translateY(0)}             50%{transform:translateY(-11px)} }
+  #note1 { animation: fn1 .8s  ease-in-out infinite; }
+  #note2 { animation: fn2 .9s  ease-in-out infinite; }
+  #note3 { animation: fn3 1s   ease-in-out infinite; }
+  .frog-notes { display: none; }
+  .singing-mode .frog-notes { display: block; }
+
+  /* ── Song buttons ── */
+  #songs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    z-index: 10;
+  }
+  .song-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: none;
+    background: linear-gradient(135deg, #0ea5e9, #22c55e);
+    color: white;
+    font-size: 12px;
+    font-family: 'Jua', sans-serif;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(14,165,233,.35);
+    transition: transform .18s, box-shadow .18s;
+  }
+  .song-btn:hover { transform: scale(1.06); }
+  .song-btn.active {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    box-shadow: 0 0 14px rgba(239,68,68,.55);
+  }
+
+  /* ── Keyboard ── */
+  #keyboard-wrap {
+    width: calc(100% - 20px);
+    max-width: 430px;
+    background: rgba(0,0,0,.4);
+    border-radius: 20px;
+    padding: 12px 12px 14px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,.45);
+    z-index: 10;
+  }
+  #keys {
+    display: flex;
+    gap: 6px;
+  }
+  .key {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 0 13px;
+    border-radius: 13px;
+    border: 2px solid rgba(255,255,255,.22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: transform .07s, box-shadow .07s, background .07s, border-color .07s;
+    outline: none;
+  }
+  .key-icon { font-size: 13px; line-height: 1; }
+  .key-label {
+    font-size: 13px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0,0,0,.55);
+    font-family: 'Jua', sans-serif;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+  .key.pressed {
+    transform: translateY(4px) !important;
+  }
+  #hz-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 7px;
+  }
+  .hz-label {
+    flex: 1;
+    text-align: center;
+    font-size: 9px;
+    color: rgba(255,255,255,.28);
+    font-family: 'Jua', sans-serif;
+    transition: color .1s, text-shadow .1s;
+  }
+  .hz-label.lit { color: var(--glow); text-shadow: 0 0 8px var(--glow); }
+
+  /* footer */
+  #footer {
+    margin-top: 12px;
+    font-size: 11px;
+    color: rgba(134,239,172,.5);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Stars (generated by JS) -->
+
+<!-- Title -->
+<div id="title">
+  <h1>🐸 개구리 노래방 🎤</h1>
+  <p>꾹 누르면 음이 지속돼요 · 여러 음 동시에 눌러도 돼요!</p>
+</div>
+
+<!-- Pond -->
+<div id="pond-wrap">
+  <div class="lily lily-a"></div>
+  <div class="lily lily-b"></div>
+  <div class="lily lily-c"></div>
+
+  <div id="frog-wrap">
+    <div id="lily-under"></div>
+    <svg id="frog-svg" viewBox="0 0 200 200" width="155" height="155"
+         style="filter:drop-shadow(0 6px 18px rgba(0,100,0,.45))">
+      <!-- body -->
+      <ellipse cx="100" cy="135" rx="62" ry="52" fill="#22c55e"/>
+      <ellipse cx="100" cy="130" rx="55" ry="45" fill="#4ade80"/>
+      <!-- belly -->
+      <ellipse cx="100" cy="145" rx="38" ry="32" fill="#bbf7d0"/>
+      <!-- back legs -->
+      <ellipse cx="52"  cy="175" rx="22" ry="12" fill="#16a34a" transform="rotate(-20,52,175)"/>
+      <ellipse cx="148" cy="175" rx="22" ry="12" fill="#16a34a" transform="rotate(20,148,175)"/>
+      <!-- front legs -->
+      <ellipse cx="60"  cy="158" rx="14" ry="9"  fill="#22c55e" transform="rotate(-30,60,158)"/>
+      <ellipse cx="140" cy="158" rx="14" ry="9"  fill="#22c55e" transform="rotate(30,140,158)"/>
+      <!-- eye bumps -->
+      <circle cx="72"  cy="88" r="22" fill="#16a34a"/>
+      <circle cx="128" cy="88" r="22" fill="#16a34a"/>
+      <circle cx="72"  cy="85" r="18" fill="#4ade80"/>
+      <circle cx="128" cy="85" r="18" fill="#4ade80"/>
+      <!-- eyes (normal) -->
+      <g id="eyes-normal">
+        <circle cx="72"  cy="83" r="12" fill="#1a1a1a"/>
+        <circle cx="76"  cy="80" r="4"  fill="white"/>
+        <circle cx="70"  cy="87" r="2"  fill="white"/>
+        <circle cx="128" cy="83" r="12" fill="#1a1a1a"/>
+        <circle cx="132" cy="80" r="4"  fill="white"/>
+        <circle cx="126" cy="87" r="2"  fill="white"/>
+      </g>
+      <!-- wink eyes -->
+      <g id="eyes-wink" style="display:none">
+        <path d="M58 85 Q72 75 86 85" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="128" cy="83" r="12" fill="#1a1a1a"/>
+        <circle cx="132" cy="80" r="4"  fill="white"/>
+        <circle cx="126" cy="87" r="2"  fill="white"/>
+      </g>
+      <!-- nostrils -->
+      <circle cx="90"  cy="108" r="4" fill="#16a34a"/>
+      <circle cx="110" cy="108" r="4" fill="#16a34a"/>
+      <!-- mouth closed -->
+      <path id="mouth-closed" d="M70 122 Q100 138 130 122" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+      <!-- mouth open -->
+      <g id="mouth-open" style="display:none">
+        <path d="M68 122 Q100 148 132 122" fill="#ef4444" stroke="#16a34a" stroke-width="2"/>
+        <path d="M68 122 Q100 128 132 122" fill="#fca5a5"/>
+        <ellipse cx="100" cy="139" rx="18" ry="10" fill="#f87171"/>
+        <line x1="100" y1="128" x2="100" y2="149" stroke="#dc2626" stroke-width="1.5"/>
+      </g>
+      <!-- music notes (hidden until singing) -->
+      <g class="frog-notes">
+        <text id="note1" x="148" y="70" font-size="18" fill="#fbbf24">♪</text>
+        <text id="note2" x="28"  y="64" font-size="14" fill="#f472b6">♫</text>
+        <text id="note3" x="156" y="102" font-size="12" fill="#60a5fa">♩</text>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<!-- Song buttons -->
+<div id="songs"></div>
+
+<!-- Keyboard -->
+<div id="keyboard-wrap">
+  <div id="keys"></div>
+  <div id="hz-row"></div>
+</div>
+
+<div id="footer">🎵 개굴개굴~ 개굴개굴~ 🎵</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════ */
+const NOTES = [
+  { label:"도",  freq:261.63, color:"#4ade80", dark:"#15803d", glow:"#4ade80" },
+  { label:"레",  freq:293.66, color:"#86efac", dark:"#16a34a", glow:"#86efac" },
+  { label:"미",  freq:329.63, color:"#6ee7b7", dark:"#0d9488", glow:"#6ee7b7" },
+  { label:"파",  freq:349.23, color:"#5eead4", dark:"#0f766e", glow:"#5eead4" },
+  { label:"솔",  freq:392.00, color:"#67e8f9", dark:"#0e7490", glow:"#67e8f9" },
+  { label:"라",  freq:440.00, color:"#7dd3fc", dark:"#0369a1", glow:"#7dd3fc" },
+  { label:"시",  freq:493.88, color:"#a5b4fc", dark:"#4338ca", glow:"#a5b4fc" },
+  { label:"도↑", freq:523.25, color:"#c4b5fd", dark:"#7c3aed", glow:"#c4b5fd" },
+];
+
+const SONGS = [
+  { name:"개굴개굴", notes:[0,0,2,2,4,4,2,4,4,3,3,1,1,0], tempo:380 },
+  { name:"비행기",   notes:[4,4,5,4,6,5,4,2,2,2,4,4,4,2], tempo:360 },
+  { name:"학교종",   notes:[4,4,5,5,4,4,2,4,4,3,3,2,2,4,4,5,5,4,4,2], tempo:340 },
+];
+
+/* ═══════════════════════════════════════════════
+   STARS
+═══════════════════════════════════════════════ */
+for (let i = 0; i < 22; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  s.style.cssText = `
+    top:${3 + Math.random()*38}%;
+    left:${(i/22)*100}%;
+    --dur:${2+Math.random()*2.5}s;
+    --delay:-${Math.random()*2.5}s;
+  `;
+  document.body.prepend(s);
+}
+
+/* ═══════════════════════════════════════════════
+   AUDIO ENGINE
+═══════════════════════════════════════════════ */
+let audioCtx = null;
+let reverbNode = null;
+let masterGain = null;
+const nodeMap = new Map(); // noteIdx → nodes
+
+function getCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // reverb
+    reverbNode = audioCtx.createConvolver();
+    const len = audioCtx.sampleRate * 0.6;
+    const buf = audioCtx.createBuffer(2, len, audioCtx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/len, 2.5);
+    }
+    reverbNode.buffer = buf;
+
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.85;
+    reverbNode.connect(masterGain);
+    masterGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function startNote(noteIdx) {
+  if (nodeMap.has(noteIdx)) return;
+  const ctx  = getCtx();
+  const freq = NOTES[noteIdx].freq;
+  const t    = ctx.currentTime;
+
+  const osc       = ctx.createOscillator();
+  const gain      = ctx.createGain();
+  const osc2      = ctx.createOscillator();
+  const gain2     = ctx.createGain();
+  const vibOsc    = ctx.createOscillator();
+  const vibGain   = ctx.createGain();
+
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, t);
+
+  vibOsc.frequency.value = 5.5;
+  vibGain.gain.value = freq * 0.012;
+  vibOsc.connect(vibGain);
+  vibGain.connect(osc.frequency);
+
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(freq * 1.98, t);
+
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.38, t + 0.025);
+  gain.gain.linearRampToValueAtTime(0.28, t + 0.12);
+
+  gain2.gain.setValueAtTime(0, t);
+  gain2.gain.linearRampToValueAtTime(0.10, t + 0.025);
+  gain2.gain.linearRampToValueAtTime(0.07, t + 0.10);
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+  gain.connect(reverbNode);
+  osc2.connect(gain2);
+  gain2.connect(masterGain);
+
+  osc.start(t); osc2.start(t); vibOsc.start(t);
+  nodeMap.set(noteIdx, { osc, osc2, gain, gain2, vibOsc });
+}
+
+function stopNote(noteIdx) {
+  const nodes = nodeMap.get(noteIdx);
+  if (!nodes || !audioCtx) return;
+  const t   = audioCtx.currentTime;
+  const rel = 0.18;
+  nodes.gain.gain.cancelScheduledValues(t);
+  nodes.gain.gain.setValueAtTime(nodes.gain.gain.value, t);
+  nodes.gain.gain.exponentialRampToValueAtTime(0.0001, t + rel);
+  nodes.gain2.gain.cancelScheduledValues(t);
+  nodes.gain2.gain.setValueAtTime(nodes.gain2.gain.value, t);
+  nodes.gain2.gain.exponentialRampToValueAtTime(0.0001, t + rel);
+  const snap = { ...nodes };
+  setTimeout(() => {
+    try { snap.osc.stop(); snap.osc2.stop(); snap.vibOsc.stop(); } catch(e){}
+  }, (rel + 0.05) * 1000);
+  nodeMap.delete(noteIdx);
+}
+
+function stopAllNotes() {
+  [...nodeMap.keys()].forEach(stopNote);
+}
+
+/* ═══════════════════════════════════════════════
+   FROG STATE
+═══════════════════════════════════════════════ */
+const frogWrap    = document.getElementById('frog-wrap');
+const eyesNormal  = document.getElementById('eyes-normal');
+const eyesWink    = document.getElementById('eyes-wink');
+const mouthClosed = document.getElementById('mouth-closed');
+const mouthOpen   = document.getElementById('mouth-open');
+const svgEl       = document.getElementById('frog-svg');
+
+const pressedKeys = new Set(); // noteIdx
+
+function setSinging(on) {
+  if (on) {
+    frogWrap.classList.add('singing');
+    svgEl.classList.add('singing-mode');
+    mouthClosed.style.display = 'none';
+    mouthOpen.style.display   = 'block';
+  } else {
+    frogWrap.classList.remove('singing');
+    svgEl.classList.remove('singing-mode');
+    mouthClosed.style.display = 'block';
+    mouthOpen.style.display   = 'none';
+  }
+}
+
+function pressKey(noteIdx) {
+  pressedKeys.add(noteIdx);
+  setSinging(true);
+  updateKeyVisual(noteIdx, true);
+  updateHzLabel(noteIdx, true);
+  startNote(noteIdx);
+  spawnRipple();
+  spawnBubble();
+}
+
+function releaseKey(noteIdx) {
+  pressedKeys.delete(noteIdx);
+  updateKeyVisual(noteIdx, false);
+  updateHzLabel(noteIdx, false);
+  stopNote(noteIdx);
+  if (pressedKeys.size === 0 && playingSong === null) setSinging(false);
+}
+
+/* wink */
+setInterval(() => {
+  if (pressedKeys.size === 0 && playingSong === null) {
+    eyesNormal.style.display = 'none';
+    eyesWink.style.display   = 'block';
+    setTimeout(() => {
+      eyesNormal.style.display = 'block';
+      eyesWink.style.display   = 'none';
+    }, 140);
+  }
+}, 2800 + Math.random()*2000);
+
+/* ═══════════════════════════════════════════════
+   POND FX
+═══════════════════════════════════════════════ */
+const pondWrap = document.getElementById('pond-wrap');
+
+function spawnRipple() {
+  const r = document.createElement('div');
+  r.className = 'ripple';
+  pondWrap.appendChild(r);
+  setTimeout(() => r.remove(), 1350);
+}
+
+function spawnBubble() {
+  const b = document.createElement('div');
+  b.className = 'bubble';
+  const sz = 6 + Math.random()*10;
+  b.style.cssText = `width:${sz}px;height:${sz}px;left:${20+Math.random()*110}px;`;
+  pondWrap.appendChild(b);
+  setTimeout(() => b.remove(), 2200);
+}
+
+/* ═══════════════════════════════════════════════
+   BUILD KEYBOARD
+═══════════════════════════════════════════════ */
+const keysEl  = document.getElementById('keys');
+const hzEl    = document.getElementById('hz-row');
+const keyEls  = [];
+const hzEls   = [];
+const pointerMap = new Map(); // pointerId → noteIdx
+
+NOTES.forEach((note, i) => {
+  /* key button */
+  const key = document.createElement('div');
+  key.className = 'key';
+  key.tabIndex  = 0;
+  key.style.background = `linear-gradient(180deg, ${note.color}dd 0%, ${note.dark}bb 100%)`;
+  key.style.boxShadow  = `0 5px 0 ${note.dark}, 0 6px 10px rgba(0,0,0,.32)`;
+  key.innerHTML = `<span class="key-icon">🎵</span><span class="key-label">${note.label}</span>`;
+
+  key.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    key.setPointerCapture(e.pointerId);
+    pointerMap.set(e.pointerId, i);
+    pressKey(i);
+  });
+
+  const up = (e) => {
+    const ni = pointerMap.get(e.pointerId);
+    if (ni == null) return;
+    pointerMap.delete(e.pointerId);
+    const stillHeld = [...pointerMap.values()].includes(ni);
+    if (!stillHeld) releaseKey(ni);
+  };
+  key.addEventListener('pointerup',     up);
+  key.addEventListener('pointercancel', up);
+
+  /* keyboard support */
+  key.addEventListener('keydown', (e) => { if (e.key===' '||e.key==='Enter') { e.preventDefault(); pressKey(i); } });
+  key.addEventListener('keyup',   (e) => { if (e.key===' '||e.key==='Enter') releaseKey(i); });
+
+  keysEl.appendChild(key);
+  keyEls.push(key);
+
+  /* hz label */
+  const hz = document.createElement('div');
+  hz.className = 'hz-label';
+  hz.style.setProperty('--glow', note.glow);
+  hz.textContent = note.freq.toFixed(0);
+  hzEl.appendChild(hz);
+  hzEls.push(hz);
+});
+
+function updateKeyVisual(noteIdx, pressed) {
+  const key  = keyEls[noteIdx];
+  const note = NOTES[noteIdx];
+  if (pressed) {
+    key.classList.add('pressed');
+    key.style.background = `linear-gradient(180deg, #fff 0%, ${note.color} 28%, ${note.dark} 100%)`;
+    key.style.borderColor = 'white';
+    key.style.boxShadow  = `0 0 20px ${note.glow}, 0 2px 0 rgba(0,0,0,.3), inset 0 1px 3px rgba(255,255,255,.4)`;
+  } else {
+    key.classList.remove('pressed');
+    key.style.background = `linear-gradient(180deg, ${note.color}dd 0%, ${note.dark}bb 100%)`;
+    key.style.borderColor = 'rgba(255,255,255,.22)';
+    key.style.boxShadow  = `0 5px 0 ${note.dark}, 0 6px 10px rgba(0,0,0,.32)`;
+  }
+}
+
+function updateHzLabel(noteIdx, lit) {
+  hzEls[noteIdx].classList.toggle('lit', lit);
+}
+
+/* ═══════════════════════════════════════════════
+   SONG BUTTONS
+═══════════════════════════════════════════════ */
+let playingSong  = null;
+let songTimers   = [];
+
+function stopSong() {
+  songTimers.forEach(clearTimeout);
+  songTimers = [];
+  stopAllNotes();
+  pressedKeys.clear();
+  pointerMap.clear();
+  keyEls.forEach((_,i)=>updateKeyVisual(i,false));
+  hzEls.forEach((_,i)=>updateHzLabel(i,false));
+  setSinging(false);
+  if (playingSong !== null) {
+    songBtns[playingSong].classList.remove('active');
+    songBtns[playingSong].textContent = `▶ ${SONGS[playingSong].name}`;
+  }
+  playingSong = null;
+}
+
+function playSong(idx) {
+  stopSong();
+  playingSong = idx;
+  songBtns[idx].classList.add('active');
+  songBtns[idx].textContent = '⏹ 정지';
+
+  const song = SONGS[idx];
+  song.notes.forEach((noteIdx, i) => {
+    const on = setTimeout(() => {
+      // release previous
+      if (i > 0) {
+        const prev = song.notes[i-1];
+        if (prev !== noteIdx) {
+          pressedKeys.delete(prev);
+          updateKeyVisual(prev, false);
+          updateHzLabel(prev, false);
+          stopNote(prev);
+        }
+      }
+      startNote(noteIdx);
+      pressedKeys.add(noteIdx);
+      setSinging(true);
+      updateKeyVisual(noteIdx, true);
+      updateHzLabel(noteIdx, true);
+      spawnRipple(); spawnBubble();
+    }, i * song.tempo);
+
+    const off = setTimeout(() => {
+      pressedKeys.delete(noteIdx);
+      updateKeyVisual(noteIdx, false);
+      updateHzLabel(noteIdx, false);
+      stopNote(noteIdx);
+      if (i === song.notes.length - 1) {
+        setSinging(false);
+        playingSong = null;
+        songBtns[idx].classList.remove('active');
+        songBtns[idx].textContent = `▶ ${SONGS[idx].name}`;
+      }
+    }, i * song.tempo + song.tempo * 0.72);
+
+    songTimers.push(on, off);
+  });
+}
+
+const songsEl  = document.getElementById('songs');
+const songBtns = [];
+SONGS.forEach((song, i) => {
+  const btn = document.createElement('button');
+  btn.className   = 'song-btn';
+  btn.textContent = `▶ ${song.name}`;
+  btn.addEventListener('click', () => {
+    if (playingSong === i) stopSong();
+    else playSong(i);
+  });
+  songsEl.appendChild(btn);
+  songBtns.push(btn);
+});
+</script>
+</body>
+</html>
